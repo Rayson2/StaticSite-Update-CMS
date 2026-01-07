@@ -37,7 +37,7 @@ export default function Sidebar() {
             className="p-2 rounded bg-gray-100 hover:bg-gray-200">
             {open ? "X" : "☰"}
           </button>
-          <span className="font-semibold text-lg">BNMK CMS Panel</span>
+          <span className="font-semibold text-lg">CMS Panel</span>
         </div>
         <button
           onClick={logout}
@@ -67,7 +67,7 @@ export default function Sidebar() {
     ${open ? "translate-x-0" : "-translate-x-full"}
     md:translate-x-0`}>
         <div className="hidden md:block p-4 border-b font-semibold text-lg">
-          BNMK CMS Panel
+          CMS Panel
         </div>
 
         <nav className="p-4 space-y-2 h-svh">
