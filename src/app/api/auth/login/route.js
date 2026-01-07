@@ -3,14 +3,42 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "@/lib/db";
 
-const IDLE_TIMEOUT = Number(process.env.IDLE_TIMEOUT);   // seconds
-const ABSOLUTE_CAP = Number(process.env.ABSOLUTE_CAP);   // seconds
+const IDLE_TIMEOUT = Number(process.env.IDLE_TIMEOUT);
+const ABSOLUTE_CAP = Number(process.env.ABSOLUTE_CAP);
 
 if (!IDLE_TIMEOUT || !ABSOLUTE_CAP) {
   throw new Error("Session timeout environment variables are missing");
 }
 
+async function syncAdminFromEnv() {
+  const envUsername = process.env.ADMIN_USERNAME;
+  const envPassword = process.env.ADMIN_PASSWORD;
+
+  if (!envUsername || !envPassword) return;
+
+  const hash = await bcrypt.hash(envPassword, 12);
+
+  const [rows] = await db.execute(
+    "SELECT id FROM admin_users LIMIT 1"
+  );
+
+  if (rows.length === 0) {
+    await db.execute(
+      "INSERT INTO admin_users (username, password_hash) VALUES (?, ?)",
+      [envUsername, hash]
+    );
+  } else {
+    await db.execute(
+      "UPDATE admin_users SET username = ?, password_hash = ? WHERE id = ?",
+      [envUsername, hash, rows[0].id]
+    );
+  }
+}
+
 export async function POST(req) {
+  // 🔐 ensure admin credentials are synced
+  await syncAdminFromEnv();
+
   const { username, password } = await req.json();
 
   const [rows] = await db.execute(
